@@ -762,3 +762,33 @@ hr {
 .services-first-div p {
     text-align: center;
 }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+@media (max-width: 800px) {
+    th {
+        display: none;
+    }
+    td {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: var(--primary-text);
+    color: var(--background);
+    
+}
