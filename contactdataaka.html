@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Submissions | DevMinds</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/font.css">
+
+    <style>
+        .delete-btn {
+            background-color: rgb(255, 0, 0);
+            color: var(--background);
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: "Montserrat", serif;
+        }
+
+        .delete-btn:hover {
+            background-color: rgb(167, 0, 0);
+        }
+
+        input {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 200px;
+        }
+    </style>
+
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyADIO2sYRQkZ2WcjJ4FKVOCkDOEyltHr6g",
+            authDomain: "service-f3a1b.firebaseapp.com",
+            projectId: "service-f3a1b",
+            storageBucket: "service-f3a1b.appspot.com",
+            messagingSenderId: "1013063226735",
+            appId: "1:1013063226735:web:6fde586362a60be8e7049a",
+            measurementId: "G-M6JLLYFC85",
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to fetch and display contacts
+        async function fetchContacts(dateFilter = null) {
+            const contactList = document.getElementById("contactList");
+            contactList.innerHTML = "<p>Loading...</p>";
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "ContactUs"));
+                contactList.innerHTML = ""; // Clear previous content
+
+                querySnapshot.forEach((docSnapshot) => {
+                    const data = docSnapshot.data();
+                    const contactDate = new Date(data.timestamp.seconds * 1000).toISOString().split("T")[0]; // Extract date only
+
+                    // Apply date filter if selected
+                    if (dateFilter && contactDate !== dateFilter) return;
+
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${data.name}</td>
+                        <td>${data.email}</td>
+                        <td>${data.phoneNumber}</td>
+                        <td>${data.project}</td>
+                        <td>${new Date(data.timestamp.seconds * 1000).toLocaleString()}</td>
+                        <td><button class="delete-btn" data-id="${docSnapshot.id}">Delete</button></td>
+                    `;
+                    contactList.appendChild(row);
+                });
+
+                // Attach delete event listeners with confirmation alert
+                document.querySelectorAll(".delete-btn").forEach((button) => {
+                    button.addEventListener("click", async (event) => {
+                        const docId = event.target.getAttribute("data-id");
+
+                        // Show confirmation alert
+                        const confirmDelete = confirm("Are you sure you want to delete this contact?");
+                        if (!confirmDelete) return; // Cancel deletion if user clicks 'No'
+
+                        try {
+                            await deleteDoc(doc(db, "ContactUs", docId));
+                            alert("Contact deleted successfully!");
+                            fetchContacts(dateFilter); // Refresh the list
+                        } catch (error) {
+                            console.error("Error deleting document:", error);
+                            alert("Failed to delete contact. Please try again.");
+                        }
+                    });
+                });
+
+            } catch (error) {
+                console.error("Error fetching data:", error);
+                contactList.innerHTML = "<p>Error loading data.</p>";
+            }
+        }
+
+        // Search by date
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchContacts();
+
+            document.getElementById("searchDate").addEventListener("change", (event) => {
+                const selectedDate = event.target.value;
+                fetchContacts(selectedDate);
+            });
+        });
+
+    </script>
+</head>
+
+
+
+<body>
+
+    <header>
+
+        <nav>
+            <div class="logo">
+                <img src="images/profile.png" alt="Logo">
+                <a href="index.html">Dev<strong>Minds</strong></a>
+            </div>
+
+            <ul>
+                <span class="close-btn">&times;</span>
+
+                <div class="logo-res">
+                    <img src="images/profile.png" alt="Logo">
+                    <a href="index.html">Dev<strong>Minds</strong></a>
+                </div>
+
+
+                <li><a href="services.html">Services</a></li>
+                <li><a href="industries.html">Industries</a></li>
+
+                <li>
+                    <div class="nav-get-touch">
+                        <a href="contact.html" class="nav-get-in-touch">Get In Touch</a>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="hamburger">
+                <span style="width: 70%;"></span>
+                <span></span>
+                <span style="width: 50%;"></span>
+            </div>
+
+            <a href="contact.html" class="get-in-touch">Get In Touch</a>
+
+        </nav>
+
+    </header>
+
+    <h2 style="margin-top: 40px;">Contact Submissions</h2>
+
+    <!-- Search by Date -->
+    <label for="searchDate">Search by Date:</label>
+    <input type="date" id="searchDate">
+
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone Number</th>
+                <th>Project</th>
+                <th>Timestamp</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="contactList">
+            <!-- Data will be inserted here -->
+        </tbody>
+    </table>
+</body>
+
+</html>
